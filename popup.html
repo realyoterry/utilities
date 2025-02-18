@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div id="passwordContainer">
+        <input type="password" id="masterPasswordInput" placeholder="Enter master password">
+        <button id="submitMasterPassword">Submit</button>
+        <p id="errorMsg"></p>
+    </div>
+
+    <div id="container">
+        <h1>Password Manager</h1>
+        <h3>Saved Accounts:</h3>
+        <ul id="accountList"></ul>
+        <button id="deleteAll">Delete All</button>
+
+        <input type="text" id="account" placeholder="Account Name">
+        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="masterPassword" placeholder="Master Password">
+        <button id="save">Save Password</button>
+        <button id="retrieve">Retrieve Password</button>
+    </div>
+
+    <p id="output"></p>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
