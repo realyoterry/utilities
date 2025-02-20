@@ -76,6 +76,11 @@ app.get("/mp4", async (req, res) => {
             ytdl(url, {
                 quality: "highest",
                 format: "mp4",
+                requestOptions: {
+                    headers: {
+                        Cookie: process.env.COOKIE_CONFIG,
+                    }
+                }
             }).pipe(res);
         } else {
             res.status(400).send("Invalid url");
