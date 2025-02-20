@@ -3,4 +3,4 @@
 A simple Chrome Extension with a handy of utilities.
 
 > [!IMPORTANT]  
-> When installing the extension, make sure you don't include the `api/` folder!
+> When installing the extension, make sure you don't include the `vercel/` directory!
