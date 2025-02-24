@@ -104,3 +104,54 @@ function deleteAccount(url, account) {
         if (response.success) loadAccounts();
     });
 }
+
+document.getElementById("capture").addEventListener("click", () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0) return;
+        chrome.runtime.sendMessage({ action: "capture", tabId: tabs[0].id });
+    });
+});
+
+document.getElementById("captureDIV").addEventListener("click", () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0) return;
+        const tabId = tabs[0].id;
+
+        chrome.scripting.executeScript({
+            target: { tabId },
+            func: (tabId) => {
+                console.log(tabId)
+                if (window._divSelectorActive) return;
+                window._divSelectorActive = true;
+
+                let selectedElement = null;
+
+                function highlightDiv(event) {
+                    if (selectedElement) selectedElement.style.outline = "";
+                    if (event.target.tagName === "DIV") {
+                        selectedElement = event.target;
+                        selectedElement.style.outline = "2px solid red";
+                    }
+                }
+
+                function captureDiv(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (!selectedElement) return;
+
+                    selectedElement.classList.add('screenshot-div-12345')
+                    chrome.runtime.sendMessage({ action: "captureDiv", tabId: tabId, div: selectedElement });
+                    document.removeEventListener("mouseover", highlightDiv);
+                    document.removeEventListener("click", captureDiv);
+                    selectedElement.style.outline = "";
+                    window._divSelectorActive = false;
+                }
+
+                document.addEventListener("mouseover", highlightDiv);
+                document.addEventListener("click", captureDiv);
+            },
+            args: [tabId]
+        });
+    });
+});

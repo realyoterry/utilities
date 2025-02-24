@@ -5,10 +5,13 @@
     "description": "An all-in-one Chrome extension that comes with lightweight utilities!",
     "permissions": [
         "storage",
-        "tabs"
+        "tabs",
+        "downloads",
+        "scripting",
+        "debugger"
     ],
     "host_permissions": [
-        "https://returnyoutubedislikeapi.com/votes*"
+        "<all_urls>"
     ],
     "content_scripts": [
         {
@@ -20,6 +23,9 @@
             ]
         }
     ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    },
     "action": {
         "default_popup": "popup.html"
     },

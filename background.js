@@ -81,11 +81,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             if (request.action === 'masterPassword') {
                 let salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
                 await chrome.storage.local.set({ masterPassword: await hashMasterPassword(request.masterPassword, salt), salt: toBase64(salt) });
+                sendResponse({ success: true });
             }
             else if (request.action === 'store') {
                 if (!storedData.masterPassword) throw new SecurityViolationError('No master password set.');
                 if (await hashMasterPassword(request.masterPassword, fromBase64(storedData.salt)) !== storedData.masterPassword) throw new SecurityViolationError('Incorrect password.');
                 await chrome.storage.local.set({ [encodeKey(request.url, request.account)]: await encrypt(request.password, request.masterPassword) });
+                sendResponse({ success: true });
             }
             else if (request.action === 'retrieve') {
                 let key = encodeKey(request.url, request.account);
@@ -104,14 +106,68 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
             else if (request.action === 'delete') {
                 await chrome.storage.local.remove(encodeKey(request.url, request.account));
+                sendResponse({ success: true });
             }
             else if (request.action === 'deleteAll') {
                 await chrome.storage.local.clear();
+                sendResponse({ success: true });
             }
-            else {
-                throw new SecurityViolationError('Invalid action.');
+            else if (request.action === 'capture' && request.tabId) {
+                chrome.debugger.attach({ tabId: request.tabId }, "1.3", () => {
+                    chrome.debugger.sendCommand({ tabId }, "Page.captureScreenshot", {}, (result) => {
+                        if (chrome.runtime.lastError) {
+                            console.error("Debugger error:", chrome.runtime.lastError.message);
+                            return;
+                        }
+                        if (result && result.data) {
+                            const dataUrl = "data:image/png;base64," + result.data;
+
+                            chrome.downloads.download({
+                                url: dataUrl,
+                                filename: "screenshot.png",
+                                saveAs: true,
+                            });
+                        }
+                        chrome.debugger.detach({ tabId });
+                    });
+                });
+
+                sendResponse({ success: true });
+                return true;
+            } else if (request.action === 'captureDiv') {
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                    if (tabs.length === 0) return;
+                    const tabId = tabs[0].id;
+
+                    chrome.scripting.executeScript({
+                        target: { tabId },
+                        files: ["libs/html2canvas.min.js"]
+                    }, () => {
+                        chrome.scripting.executeScript({
+                            target: { tabId },
+                            func: () => {
+                                const targetDiv = document.getElementsByClassName('screenshot-div-12345')[0];
+
+                                targetDiv.classList.remove('screenshot-div-12345');
+
+                                html2canvas(targetDiv, {
+                                    useCORS: true,
+                                    windowWidth: document.documentElement.scrollWidth,
+                                    windowHeight: document.documentElement.scrollHeight,
+                                }).then(canvas => {
+                                    let link = document.createElement("a");
+                                    link.href = canvas.toDataURL("image/png");
+                                    link.download = "captured-div.png";
+                                    link.click();
+                                });
+                            },
+                        });
+                    });
+                });
+
+                sendResponse({ success: true });
+                return true;
             }
-            sendResponse({ success: true });
         } catch (error) {
             sendResponse({ success: false, error: error?.errorMsg || error?.message || 'An unexpected error occurred.' });
         }

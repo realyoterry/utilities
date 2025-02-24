@@ -9,7 +9,11 @@
 </head>
 
 <body>
+    <button id="capture">Capture Screenshot</button>
+    <button id="captureDIV">Capture DIV</button>
+
     <div id="passwordContainer">
+        <p style="color: red;">WARNING: do not forget this password, you will need it for saving and retrieveing them.</p>
         <input type="password" id="masterPasswordInput" placeholder="Enter master password">
         <button id="submitMasterPassword">Submit</button>
         <p id="errorMsg"></p>
@@ -22,7 +26,7 @@
         <button id="deleteAll">Delete All</button>
 
         <input type="text" id="account" placeholder="Account Name">
-        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="password" placeholder="Password (only required when saving passwords)">
         <input type="password" id="masterPassword" placeholder="Master Password">
         <button id="save">Save Password</button>
         <button id="retrieve">Retrieve Password</button>
